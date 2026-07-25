@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Traders Family — Subscription Tracker</title>
 
+<!-- Favicon inline (SVG data URI, tema oranye) supaya ikon tab selalu terbaca tanpa request eksternal -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0a0a'/%3E%3Crect x='6' y='6' width='88' height='88' rx='16' fill='none' stroke='%23FF6A00' stroke-width='4'/%3E%3Cpath d='M28 66 L46 42 L58 54 L74 30' stroke='%23FF6A00' stroke-width='7' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='74' cy='30' r='6' fill='%23FF6A00'/%3E%3C/svg%3E" />
+
 <!-- Tailwind CSS (CDN, JIT) -->
 <script src="https://cdn.tailwindcss.com"></script>
 
@@ -16,7 +19,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 
 <style>
-  html, body { background:#0a0a0a; margin:0; padding:0; }
+  html, body { background:#0a0a0a; margin:0; padding:0; width:100%; overflow-x:hidden; }
+  *, *::before, *::after { box-sizing: border-box; }
 </style>
 </head>
 <body>
@@ -217,11 +221,11 @@ function CountdownBlock({ value, label, accent }) {
   return (
     <div className="flex flex-col items-center">
       <div
-        className="relative rounded-lg border bg-black/60 px-3.5 py-2 min-w-[58px] text-center transition-colors duration-500"
+        className="relative rounded-lg border bg-black/60 px-2.5 sm:px-3.5 py-1.5 sm:py-2 min-w-[46px] sm:min-w-[58px] text-center transition-colors duration-500"
         style={{ borderColor: `${accent}4D`, boxShadow: `inset 0 0 12px ${accent}26` }}
       >
         <span
-          className="font-jetbrains text-xl font-bold tracking-wider transition-colors duration-500"
+          className="font-jetbrains text-base sm:text-xl font-bold tracking-wider transition-colors duration-500"
           style={{ color: accent, textShadow: `0 0 8px ${accent}CC` }}
         >
           {value}
@@ -304,17 +308,17 @@ function TraderSubscriptionCard({ id, traderName, lot, price, startDate, expiryD
         e.currentTarget.style.boxShadow = "0 0 0px rgba(255,106,0,0)";
       }}
     >
-      <div className="relative overflow-hidden rounded-2xl p-6 h-full">
+      <div className="relative overflow-hidden rounded-2xl p-4 sm:p-6 h-full">
         <div className="pointer-events-none absolute -top-24 -right-24 h-56 w-56 rounded-full bg-[#FF6A00]/10 blur-3xl" />
 
         <CornerBrackets color="#FF6A00" />
 
         <div className="relative flex items-start justify-between mb-5 gap-2">
           <div className="min-w-0">
-            <p className="font-orbitron text-[10px] font-bold uppercase tracking-[0.3em] text-[#FF6A00] mb-1 drop-shadow-[0_0_6px_rgba(255,106,0,0.5)]">
+            <p className="font-orbitron text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[#FF6A00] mb-1 drop-shadow-[0_0_6px_rgba(255,106,0,0.5)] truncate">
               TRADERS FAMILY // LOT {lot || "-"}
             </p>
-            <h2 className="font-rajdhani text-2xl font-bold text-white tracking-wide truncate">
+            <h2 className="font-rajdhani text-xl sm:text-2xl font-bold text-white tracking-wide truncate">
               {traderName}
             </h2>
           </div>
@@ -334,31 +338,31 @@ function TraderSubscriptionCard({ id, traderName, lot, price, startDate, expiryD
 
         <div className="relative mb-5 rounded-xl border border-white/10 bg-black/30 px-4 py-3">
           <p className="font-orbitron text-[9px] uppercase tracking-[0.25em] text-gray-500 mb-1">HARGA SUBSCRIPTION</p>
-          <p className="font-jetbrains text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF6A00] to-white drop-shadow-[0_0_10px_rgba(255,106,0,0.25)]">
+          <p className="font-jetbrains text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF6A00] to-white drop-shadow-[0_0_10px_rgba(255,106,0,0.25)] break-words">
             {price}
           </p>
         </div>
 
-        <div className="relative grid grid-cols-2 gap-3 mb-5">
-          <div className="rounded-xl border border-white/10 bg-black/30 px-3 py-2.5">
+        <div className="relative grid grid-cols-2 gap-2 sm:gap-3 mb-5">
+          <div className="min-w-0 rounded-xl border border-white/10 bg-black/30 px-2.5 sm:px-3 py-2.5">
             <p className="font-orbitron text-[8px] uppercase tracking-[0.2em] text-gray-500 mb-1">START DATE</p>
-            <p className="font-rajdhani text-base font-semibold text-white">{startDate}</p>
+            <p className="font-rajdhani text-sm sm:text-base font-semibold text-white truncate">{startDate}</p>
           </div>
-          <div className="rounded-xl border border-white/10 bg-black/30 px-3 py-2.5">
+          <div className="min-w-0 rounded-xl border border-white/10 bg-black/30 px-2.5 sm:px-3 py-2.5">
             <p className="font-orbitron text-[8px] uppercase tracking-[0.2em] text-gray-500 mb-1">EXPIRY DATE</p>
-            <p className="font-rajdhani text-base font-semibold text-white">{expiryLabel}</p>
+            <p className="font-rajdhani text-sm sm:text-base font-semibold text-white truncate">{expiryLabel}</p>
           </div>
         </div>
 
-        <div className="relative rounded-xl border border-white/10 bg-black/40 px-3 py-4">
+        <div className="relative rounded-xl border border-white/10 bg-black/40 px-2 sm:px-3 py-4">
           <p className="font-orbitron text-[8px] uppercase tracking-[0.25em] text-gray-500 mb-3 text-center">
             {timeLeft.status === "expired" ? "AKSES BERAKHIR" : "SISA WAKTU AKSES"}
           </p>
-          <div className="flex items-center justify-center gap-1.5">
+          <div className="flex items-center justify-center gap-1 sm:gap-1.5">
             <CountdownBlock value={pad2(timeLeft.days)} label="HARI" accent={s.accent} />
-            <span className="font-jetbrains text-lg pb-4 transition-colors duration-500" style={{ color: `${s.accent}99` }}>:</span>
+            <span className="font-jetbrains text-base sm:text-lg pb-4 transition-colors duration-500" style={{ color: `${s.accent}99` }}>:</span>
             <CountdownBlock value={pad2(timeLeft.hours)} label="JAM" accent={s.accent} />
-            <span className="font-jetbrains text-lg pb-4 transition-colors duration-500" style={{ color: `${s.accent}99` }}>:</span>
+            <span className="font-jetbrains text-base sm:text-lg pb-4 transition-colors duration-500" style={{ color: `${s.accent}99` }}>:</span>
             <CountdownBlock value={pad2(timeLeft.minutes)} label="MENIT" accent={s.accent} />
           </div>
         </div>
@@ -369,11 +373,11 @@ function TraderSubscriptionCard({ id, traderName, lot, price, startDate, expiryD
 
 function SummaryStat({ label, value, color }) {
   return (
-    <div className="flex items-center gap-2.5 rounded-xl border border-white/5 bg-white/[0.02] px-4 py-2.5">
-      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }} />
-      <span className="font-orbitron text-[10px] tracking-[0.15em] text-gray-500">{label}</span>
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-white/5 bg-white/[0.02] px-3 sm:px-4 py-2.5 min-w-0">
+      <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }} />
+      <span className="font-orbitron text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.15em] text-gray-500 truncate">{label}</span>
       <span
-        className="font-jetbrains text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r"
+        className="font-jetbrains text-base sm:text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r ml-auto"
         style={{ backgroundImage: `linear-gradient(90deg, #ffffff, ${color})`, filter: `drop-shadow(0 0 8px ${color}99)` }}
       >
         {value}
@@ -385,7 +389,7 @@ function SummaryStat({ label, value, color }) {
 // ---- Search bar glassmorphism ----
 function SearchBar({ value, onChange }) {
   return (
-    <div className="relative flex-1 min-w-[220px]">
+    <div className="relative w-full min-w-0 flex-1 xl:min-w-[220px]">
       <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#FF6A00]/70">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="11" cy="11" r="7" />
@@ -406,7 +410,7 @@ function SearchBar({ value, onChange }) {
 // ---- Dropdown sortir glassmorphism ----
 function SortDropdown({ value, onChange }) {
   return (
-    <div className="relative min-w-[190px]">
+    <div className="relative w-full min-w-0 xl:min-w-[190px]">
       <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#FF6A00]/70">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="9" />
@@ -551,22 +555,22 @@ function TraderFormModal({ open, mode, initialData, onClose, onSubmit }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
       onMouseDown={handleBackdropMouseDown}
       onClick={handleBackdropClick}
     >
       <div
-        className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#111111]"
+        className="relative w-full max-w-md my-auto rounded-2xl border border-white/10 bg-[#111111]"
       >
-        <div className="relative overflow-hidden rounded-2xl p-6">
+        <div className="relative overflow-hidden rounded-2xl p-4 sm:p-6">
           <div className="pointer-events-none absolute -top-20 -right-20 h-48 w-48 rounded-full bg-[#FF6A00]/10 blur-3xl" />
           <CornerBrackets color="#FF6A00" />
 
-          <div className="relative mb-6">
-            <p className="font-orbitron text-[10px] font-bold uppercase tracking-[0.3em] text-[#FF6A00] mb-1 drop-shadow-[0_0_6px_rgba(255,106,0,0.5)]">
+          <div className="relative mb-6 min-w-0">
+            <p className="font-orbitron text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[#FF6A00] mb-1 drop-shadow-[0_0_6px_rgba(255,106,0,0.5)] break-words">
               TRADERS FAMILY // {isEdit ? "EDIT LOT" : "NEW LOT"}
             </p>
-            <h3 className="font-rajdhani text-2xl font-bold text-white">
+            <h3 className="font-rajdhani text-xl sm:text-2xl font-bold text-white break-words">
               {isEdit ? "Edit Subscription" : "Add New Subscription"}
             </h3>
           </div>
@@ -820,7 +824,7 @@ function App() {
   }, [traders, search, filter, statusMap, sortBy]);
 
   return (
-    <div className="min-h-screen w-full bg-neutral-950 p-6 md:p-10">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-neutral-950 p-4 sm:p-6 md:p-10">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
         .font-orbitron { font-family: 'Orbitron', sans-serif; }
@@ -883,11 +887,11 @@ function App() {
 
       <div className="relative max-w-6xl mx-auto">
         {/* ---- Header Dasbor ---- */}
-        <div className="mb-8">
-          <p className="font-orbitron text-xs uppercase tracking-[0.4em] text-gray-500">
+        <div className="mb-6 sm:mb-8 max-w-full">
+          <p className="font-orbitron text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.4em] text-gray-500 break-words">
             TRADERS FAMILY — MANAJEMEN LANGGANAN
           </p>
-          <h1 className="font-rajdhani text-3xl md:text-4xl font-bold uppercase tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-[#FF6A00] to-white mt-1">
+          <h1 className="font-rajdhani text-2xl sm:text-3xl md:text-4xl font-bold uppercase tracking-wide sm:tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-[#FF6A00] to-white mt-1 break-words">
             Dasbor Trader
           </h1>
           <p className="font-jetbrains text-[11px] text-gray-400 mt-2">
@@ -896,7 +900,7 @@ function App() {
         </div>
 
         {/* ---- Bilah Ringkasan Global ---- */}
-        <div className="flex flex-wrap gap-3 mb-6 rounded-2xl border border-white/10 bg-[#111111] p-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 rounded-2xl border border-white/10 bg-[#111111] p-3 sm:p-4">
           <SummaryStat label="TOTAL AKUN" value={summary.total} color="#FF6A00" />
           <SummaryStat label="AKTIF" value={summary.active} color="#00FFA3" />
           <SummaryStat label="WARNING" value={summary.warning} color="#FFC93C" />
@@ -904,17 +908,17 @@ function App() {
         </div>
 
         {/* ---- Control Bar: Search + Sort + Filter + Add Trader ---- */}
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-8 rounded-2xl border border-white/10 bg-[#111111] p-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 xl:flex xl:items-center">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-8 rounded-2xl border border-white/10 bg-[#111111] p-3 sm:p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 min-w-0 xl:flex xl:items-center">
             <SearchBar value={search} onChange={setSearch} />
             <SortDropdown value={sortBy} onChange={setSortBy} />
-            <div className="sm:col-span-2 xl:col-span-1">
+            <div className="sm:col-span-2 xl:col-span-1 min-w-0">
               <FilterButtons active={filter} onChange={setFilter} />
             </div>
           </div>
           <button
             onClick={openAddModal}
-            className="btn-add-glow shrink-0 w-full lg:w-auto rounded-xl border border-[#FF6A00] bg-[#FF6A00] px-5 py-2.5 font-orbitron text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-all duration-300 hover:bg-[#FF7E1F] hover:-translate-y-0.5"
+            className="btn-add-glow shrink-0 w-full lg:w-auto rounded-xl border border-[#FF6A00] bg-[#FF6A00] px-4 sm:px-5 py-2.5 font-orbitron text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-all duration-300 hover:bg-[#FF7E1F] hover:-translate-y-0.5"
           >
             + ADD TRADER
           </button>
