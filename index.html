@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Traders Family — Subscription Tracker</title>
+
+<!-- Tailwind CSS (CDN, JIT) -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- React 18 + ReactDOM (UMD build) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+
+<!-- Babel standalone: mengizinkan kita menulis JSX langsung di browser -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+
+<style>
+  html, body { background:#0a0a0a; margin:0; padding:0; }
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useCallback } = React;
+
+/**
+ * TRADERS FAMILY — SUBSCRIPTION TRACKER
+ * Tahap 8: Redesign Total Tema UI/UX (Industrial Futuristic / Orange Accent)
+ *
+ * Versi HTML mandiri (single-file) untuk di-hosting di GitHub Pages.
+ * - Data traders disimpan lewat localStorage browser (pengganti
+ *   window.storage yang hanya tersedia di sandbox Claude artifact).
+ * - Tombol Edit & Hapus pada tiap kartu.
+ * - Modal form tunggal yang berfungsi ganda: Tambah (Add) & Ubah (Edit).
+ * - Dropdown sortir: Waktu Terdekat (default) / Waktu Terlama / Nama (A-Z).
+ * - Tema: aksen Oranye (#FF6A00), panel solid neutral-950/#111111,
+ *   tipografi uppercase/tracking-widest, scrollbar oranye/abu pekat.
+ */
+
+const STORAGE_KEY = "tradersFamilyData";
+
+// ---- Wrapper penyimpanan permanen berbasis localStorage ----
+const storage = {
+  async get(key) {
+    const raw = window.localStorage.getItem(key);
+    if (raw === null) return null;
+    return { value: raw };
+  },
+  async set(key, value) {
+    window.localStorage.setItem(key, value);
+    return { value };
+  },
+};
+
+const STATUS_STYLES = {
+  active: {
+    label: "ACTIVE",
+    accent: "#00FFA3",
+  },
+  warning: {
+    label: "WARNING",
+    accent: "#FFC93C",
+  },
+  expired: {
+    label: "EXPIRED",
+    accent: "#FF3366",
+  },
+};
+
+const FILTERS = [
+  { key: "all", label: "ALL", accent: "#FF6A00" },
+  { key: "active", label: "ACTIVE", accent: "#00FFA3" },
+  { key: "warning", label: "WARNING", accent: "#FFC93C" },
+  { key: "expired", label: "EXPIRED", accent: "#FF3366" },
+];
+
+const SORT_OPTIONS = [
+  { key: "nearest", label: "Waktu Terdekat" },
+  { key: "furthest", label: "Waktu Terlama" },
+  { key: "name", label: "Nama (A-Z)" },
+];
+
+// ---- Ikon inline (pengganti lucide-react agar tidak butuh bundler) ----
+function PencilIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+      <path d="m15 5 4 4" />
+    </svg>
+  );
+}
+
+function TrashIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 6h18" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <line x1="10" y1="11" x2="10" y2="17" />
+      <line x1="14" y1="11" x2="14" y2="17" />
+    </svg>
+  );
+}
+
+// ---- Helper: hitung sisa waktu & status dari target expiry date ----
+function getTimeRemaining(expiryDate) {
+  const total = expiryDate.getTime() - new Date().getTime();
+
+  if (total <= 0) {
+    return { total: 0, days: 0, hours: 0, minutes: 0, seconds: 0, status: "expired" };
+  }
+
+  const days = Math.floor(total / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((total / (1000 * 60)) % 60);
+  const seconds = Math.floor((total / 1000) % 60);
+
+  const status = days <= 3 ? "warning" : "active";
+
+  return { total, days, hours, minutes, seconds, status };
+}
+
+const pad2 = (n) => String(n).padStart(2, "0");
+
+const todayLabel = () =>
+  new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+
+// ---- Helper: format Date -> value terpisah untuk <input type="date"> & <input type="time"> ----
+function toDateInputValue(date) {
+  const yyyy = date.getFullYear();
+  const mm = pad2(date.getMonth() + 1);
+  const dd = pad2(date.getDate());
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function toTimeInputValue(date) {
+  const hh = pad2(date.getHours());
+  const mi = pad2(date.getMinutes());
+  return `${hh}:${mi}`;
+}
+
+// ---- Helper: serialize / deserialize untuk penyimpanan permanen ----
+function serializeTraders(traders) {
+  return JSON.stringify(
+    traders.map((t) => ({ ...t, expiryDate: t.expiryDate.toISOString() }))
+  );
+}
+
+function deserializeTraders(raw) {
+  const parsed = JSON.parse(raw);
+  return parsed.map((t) => ({ ...t, expiryDate: new Date(t.expiryDate) }));
+}
+
+function StatusBadge({ status = "active" }) {
+  const s = STATUS_STYLES[status];
+  return (
+    <div
+      className="inline-flex items-center gap-2 rounded-full px-3 py-1.5"
+      style={{
+        boxShadow: `0 0 16px ${s.accent}73, inset 0 0 0 1px ${s.accent}66`,
+        backgroundColor: `${s.accent}1A`,
+      }}
+    >
+      <span className="relative flex h-2 w-2">
+        {status !== "expired" && (
+          <span
+            className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+            style={{ backgroundColor: s.accent }}
+          ></span>
+        )}
+        <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: s.accent }}></span>
+      </span>
+      <span
+        className="font-orbitron text-xs font-extrabold"
+        style={{ color: s.accent, textShadow: `0 0 8px ${s.accent}CC`, letterSpacing: "0.2em" }}
+      >
+        {s.label}
+      </span>
+    </div>
+  );
+}
+
+function CornerBrackets({ color = "#FF6A00" }) {
+  const base = "absolute w-5 h-5 border-[2px] transition-colors duration-500";
+  return (
+    <>
+      <span className={`${base} top-2 left-2 border-t-2 border-l-2 border-r-0 border-b-0 rounded-tl-md`} style={{ borderColor: color }} />
+      <span className={`${base} top-2 right-2 border-t-2 border-r-2 border-l-0 border-b-0 rounded-tr-md`} style={{ borderColor: color }} />
+      <span className={`${base} bottom-2 left-2 border-b-2 border-l-2 border-r-0 border-t-0 rounded-bl-md`} style={{ borderColor: color }} />
+      <span className={`${base} bottom-2 right-2 border-b-2 border-r-2 border-l-0 border-t-0 rounded-br-md`} style={{ borderColor: color }} />
+    </>
+  );
+}
+
+function CountdownBlock({ value, label, accent }) {
+  return (
+    <div className="flex flex-col items-center">
+      <div
+        className="relative rounded-lg border bg-black/60 px-3.5 py-2 min-w-[58px] text-center transition-colors duration-500"
+        style={{ borderColor: `${accent}4D`, boxShadow: `inset 0 0 12px ${accent}26` }}
+      >
+        <span
+          className="font-jetbrains text-xl font-bold tracking-wider transition-colors duration-500"
+          style={{ color: accent, textShadow: `0 0 8px ${accent}CC` }}
+        >
+          {value}
+        </span>
+      </div>
+      <span className="mt-1.5 font-orbitron text-[8px] tracking-[0.2em] text-gray-500">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+// ---- Tombol aksi kecil (Edit / Hapus) ----
+function CardActionButton({ onClick, tone, children, label }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className="rounded-lg border p-1.5 transition-all duration-300"
+      style={{
+        borderColor: "rgba(255,255,255,0.1)",
+        backgroundColor: "rgba(255,255,255,0.03)",
+        color: "#9ca3af",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = `${tone}80`;
+        e.currentTarget.style.color = tone;
+        e.currentTarget.style.boxShadow = `0 0 10px ${tone}59`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+        e.currentTarget.style.color = "#9ca3af";
+        e.currentTarget.style.boxShadow = "none";
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function TraderSubscriptionCard({ id, traderName, price, startDate, expiryDate, onStatusChange, onEdit, onDelete }) {
+  const [timeLeft, setTimeLeft] = useState(() => getTimeRemaining(expiryDate));
+
+  useEffect(() => {
+    const tick = () => {
+      const remaining = getTimeRemaining(expiryDate);
+      setTimeLeft(remaining);
+      onStatusChange?.(id, remaining.status);
+      return remaining;
+    };
+
+    const initial = tick();
+    if (initial.total <= 0) return;
+
+    const intervalId = setInterval(() => {
+      const remaining = tick();
+      if (remaining.total <= 0) clearInterval(intervalId);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expiryDate, id]);
+
+  const s = STATUS_STYLES[timeLeft.status];
+  const expiryLabel = useMemo(
+    () => expiryDate.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }),
+    [expiryDate]
+  );
+
+  return (
+    <div
+      className="group relative w-full rounded-2xl border border-white/10 bg-[#111111] transition-all duration-500 ease-out hover:-translate-y-1 hover:border-[#FF6A00]/40"
+      style={{ boxShadow: "0 0 0px rgba(255,106,0,0)" }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.boxShadow = "0 20px 45px -14px rgba(0,0,0,0.6), 0 0 28px rgba(255,106,0,0.35)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.boxShadow = "0 0 0px rgba(255,106,0,0)";
+      }}
+    >
+      <div className="relative overflow-hidden rounded-2xl p-6 h-full">
+        <div className="pointer-events-none absolute -top-24 -right-24 h-56 w-56 rounded-full bg-[#FF6A00]/10 blur-3xl" />
+
+        <CornerBrackets color="#FF6A00" />
+
+        <div className="relative flex items-start justify-between mb-5 gap-2">
+          <div className="min-w-0">
+            <p className="font-orbitron text-[10px] font-bold uppercase tracking-[0.3em] text-[#FF6A00] mb-1 drop-shadow-[0_0_6px_rgba(255,106,0,0.5)]">
+              TRADERS FAMILY // ACCESS ID
+            </p>
+            <h2 className="font-rajdhani text-2xl font-bold text-white tracking-wide truncate">
+              {traderName}
+            </h2>
+          </div>
+
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            <StatusBadge status={timeLeft.status} />
+            <div className="flex items-center gap-1.5">
+              <CardActionButton onClick={onEdit} tone="#FF6A00" label="Edit trader">
+                <PencilIcon size={14} />
+              </CardActionButton>
+              <CardActionButton onClick={onDelete} tone="#FF3366" label="Hapus trader">
+                <TrashIcon size={14} />
+              </CardActionButton>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative mb-5 rounded-xl border border-white/10 bg-black/30 px-4 py-3">
+          <p className="font-orbitron text-[9px] uppercase tracking-[0.25em] text-gray-500 mb-1">HARGA SUBSCRIPTION</p>
+          <p className="font-jetbrains text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF6A00] to-white drop-shadow-[0_0_10px_rgba(255,106,0,0.25)]">
+            {price}
+          </p>
+        </div>
+
+        <div className="relative grid grid-cols-2 gap-3 mb-5">
+          <div className="rounded-xl border border-white/10 bg-black/30 px-3 py-2.5">
+            <p className="font-orbitron text-[8px] uppercase tracking-[0.2em] text-gray-500 mb-1">START DATE</p>
+            <p className="font-rajdhani text-base font-semibold text-white">{startDate}</p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/30 px-3 py-2.5">
+            <p className="font-orbitron text-[8px] uppercase tracking-[0.2em] text-gray-500 mb-1">EXPIRY DATE</p>
+            <p className="font-rajdhani text-base font-semibold text-white">{expiryLabel}</p>
+          </div>
+        </div>
+
+        <div className="relative rounded-xl border border-white/10 bg-black/40 px-3 py-4">
+          <p className="font-orbitron text-[8px] uppercase tracking-[0.25em] text-gray-500 mb-3 text-center">
+            {timeLeft.status === "expired" ? "AKSES BERAKHIR" : "SISA WAKTU AKSES"}
+          </p>
+          <div className="flex items-center justify-center gap-1.5">
+            <CountdownBlock value={pad2(timeLeft.days)} label="HARI" accent={s.accent} />
+            <span className="font-jetbrains text-lg pb-4 transition-colors duration-500" style={{ color: `${s.accent}99` }}>:</span>
+            <CountdownBlock value={pad2(timeLeft.hours)} label="JAM" accent={s.accent} />
+            <span className="font-jetbrains text-lg pb-4 transition-colors duration-500" style={{ color: `${s.accent}99` }}>:</span>
+            <CountdownBlock value={pad2(timeLeft.minutes)} label="MENIT" accent={s.accent} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SummaryStat({ label, value, color }) {
+  return (
+    <div className="flex items-center gap-2.5 rounded-xl border border-white/5 bg-white/[0.02] px-4 py-2.5">
+      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }} />
+      <span className="font-orbitron text-[10px] tracking-[0.15em] text-gray-500">{label}</span>
+      <span
+        className="font-jetbrains text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r"
+        style={{ backgroundImage: `linear-gradient(90deg, #ffffff, ${color})`, filter: `drop-shadow(0 0 8px ${color}99)` }}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+// ---- Search bar glassmorphism ----
+function SearchBar({ value, onChange }) {
+  return (
+    <div className="relative flex-1 min-w-[220px]">
+      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#FF6A00]/70">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="11" cy="11" r="7" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </span>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Cari nama trader..."
+        className="w-full rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-xl pl-10 pr-4 py-2.5 font-rajdhani text-sm text-white placeholder:text-gray-500 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_16px_rgba(255,106,0,0.25)]"
+      />
+    </div>
+  );
+}
+
+// ---- Dropdown sortir glassmorphism ----
+function SortDropdown({ value, onChange }) {
+  return (
+    <div className="relative min-w-[190px]">
+      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#FF6A00]/70">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M3 6h18M6 12h12M10 18h4" strokeLinecap="round" />
+        </svg>
+      </span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-xl pl-10 pr-9 py-2.5 font-rajdhani text-sm text-white outline-none transition-all duration-300 cursor-pointer focus:border-[#FF6A00]/70 focus:shadow-[0_0_16px_rgba(255,106,0,0.25)]"
+      >
+        {SORT_OPTIONS.map((opt) => (
+          <option key={opt.key} value={opt.key} className="bg-black text-white">
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#FF6A00]/70">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <polyline points="6 9 12 15 18 9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </span>
+    </div>
+  );
+}
+
+// ---- Grup tombol filter status ----
+function FilterButtons({ active, onChange }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {FILTERS.map((f) => {
+        const isActive = active === f.key;
+        return (
+          <button
+            key={f.key}
+            onClick={() => onChange(f.key)}
+            className="font-orbitron text-[10px] font-bold tracking-[0.15em] px-3.5 py-2.5 rounded-xl border transition-all duration-300"
+            style={
+              isActive
+                ? {
+                    borderColor: f.accent,
+                    color: f.accent,
+                    backgroundColor: `${f.accent}1A`,
+                    boxShadow: `0 0 14px ${f.accent}66`,
+                  }
+                : {
+                    borderColor: "rgba(255,255,255,0.08)",
+                    color: "#6b7280",
+                    backgroundColor: "rgba(255,255,255,0.02)",
+                  }
+            }
+          >
+            {f.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ---- Modal form: berfungsi ganda untuk Tambah (add) & Ubah (edit) ----
+function TraderFormModal({ open, mode, initialData, onClose, onSubmit }) {
+  const [name, setName] = useState("");
+  const [priceRaw, setPriceRaw] = useState("");
+  const [expiryDateInput, setExpiryDateInput] = useState("");
+  const [expiryTimeInput, setExpiryTimeInput] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    if (mode === "edit" && initialData) {
+      setName(initialData.traderName);
+      setPriceRaw(String(initialData.price).replace(/[^0-9]/g, ""));
+      setExpiryDateInput(toDateInputValue(initialData.expiryDate));
+      setExpiryTimeInput(toTimeInputValue(initialData.expiryDate));
+    } else {
+      setName("");
+      setPriceRaw("");
+      setExpiryDateInput("");
+      setExpiryTimeInput("");
+    }
+    setError("");
+  }, [open, mode, initialData]);
+
+  if (!open) return null;
+
+  const resetAndClose = () => {
+    setError("");
+    onClose();
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!name.trim() || !priceRaw || !expiryDateInput || !expiryTimeInput) {
+      setError("Semua field wajib diisi.");
+      return;
+    }
+    const expiryDate = new Date(`${expiryDateInput}T${expiryTimeInput}`);
+    if (Number.isNaN(expiryDate.getTime())) {
+      setError("Tanggal / jam berakhir tidak valid.");
+      return;
+    }
+
+    onSubmit({
+      traderName: name.trim(),
+      price: `Rp ${Number(priceRaw).toLocaleString("id-ID")}`,
+      expiryDate,
+    });
+
+    resetAndClose();
+  };
+
+  const isEdit = mode === "edit";
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+      onClick={resetAndClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#111111]"
+      >
+        <div className="relative overflow-hidden rounded-2xl p-6">
+          <div className="pointer-events-none absolute -top-20 -right-20 h-48 w-48 rounded-full bg-[#FF6A00]/10 blur-3xl" />
+          <CornerBrackets color="#FF6A00" />
+
+          <div className="relative mb-6">
+            <p className="font-orbitron text-[10px] font-bold uppercase tracking-[0.3em] text-[#FF6A00] mb-1 drop-shadow-[0_0_6px_rgba(255,106,0,0.5)]">
+              TRADERS FAMILY // {isEdit ? "EDIT ACCESS ID" : "NEW ACCESS ID"}
+            </p>
+            <h3 className="font-rajdhani text-2xl font-bold text-white">
+              {isEdit ? "Edit Subscription" : "Add New Subscription"}
+            </h3>
+          </div>
+
+          <form onSubmit={handleSubmit} className="relative flex flex-col gap-4">
+            <div>
+              <label className="block font-orbitron text-[9px] tracking-[0.2em] text-gray-500 mb-1.5">
+                NAMA TRADER
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Trader Alanis 04"
+                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 font-rajdhani text-sm text-white placeholder:text-gray-600 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)]"
+              />
+            </div>
+
+            <div>
+              <label className="block font-orbitron text-[9px] tracking-[0.2em] text-gray-500 mb-1.5">
+                HARGA LANGGANAN (RP)
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={priceRaw}
+                onChange={(e) => setPriceRaw(e.target.value)}
+                placeholder="5000000"
+                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 font-jetbrains text-sm text-white placeholder:text-gray-600 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)]"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-orbitron text-[9px] tracking-[0.2em] text-gray-500 mb-1.5">
+                  TANGGAL KEDALUWARSA
+                </label>
+                <input
+                  type="date"
+                  value={expiryDateInput}
+                  onChange={(e) => setExpiryDateInput(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 font-jetbrains text-sm text-white outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)] [color-scheme:dark]"
+                />
+              </div>
+              <div>
+                <label className="block font-orbitron text-[9px] tracking-[0.2em] text-gray-500 mb-1.5">
+                  JAM BERAKHIR
+                </label>
+                <input
+                  type="time"
+                  value={expiryTimeInput}
+                  onChange={(e) => setExpiryTimeInput(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 font-jetbrains text-sm text-white outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)] [color-scheme:dark]"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <p className="font-rajdhani text-sm text-[#FF3366]">{error}</p>
+            )}
+
+            <div className="flex gap-3 mt-2">
+              <button
+                type="button"
+                onClick={resetAndClose}
+                className="flex-1 rounded-xl border border-white/10 bg-white/[0.02] py-2.5 font-orbitron text-[11px] font-bold tracking-[0.15em] text-gray-400 transition-all duration-300 hover:border-white/20 hover:text-white"
+              >
+                BATAL
+              </button>
+              <button
+                type="submit"
+                className="flex-1 rounded-xl border border-[#FF6A00] bg-[#FF6A00] py-2.5 font-orbitron text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-all duration-300 hover:bg-[#FF7E1F] hover:shadow-[0_0_20px_rgba(255,106,0,0.45)]"
+              >
+                {isEdit ? "PERBARUI" : "SIMPAN"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- Data awal 3 trader (dipakai hanya jika belum ada data tersimpan) ----
+function buildInitialTraders() {
+  const now = new Date();
+  const inFuture = (days, hours = 0, minutes = 0) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() + days);
+    d.setHours(d.getHours() + hours);
+    d.setMinutes(d.getMinutes() + minutes);
+    return d;
+  };
+
+  return [
+    { id: "trd-01", traderName: "Trader Alanis 01", price: "Rp 5.000.000", startDate: "01 Jul 2026", expiryDate: inFuture(4, 23, 59) },
+    { id: "trd-02", traderName: "Trader Alanis 02", price: "Rp 7.500.000", startDate: "10 Jul 2026", expiryDate: inFuture(1, 14, 0) },
+    { id: "trd-03", traderName: "Trader Alanis 03", price: "Rp 3.000.000", startDate: "15 Jun 2026", expiryDate: inFuture(-4, 0, 0) },
+  ];
+}
+
+function App() {
+  const [traders, setTraders] = useState(buildInitialTraders);
+  const [hydrated, setHydrated] = useState(false);
+  const [statusMap, setStatusMap] = useState({});
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("nearest");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("add");
+  const [editingTrader, setEditingTrader] = useState(null);
+
+  // ---- Muat data dari penyimpanan permanen (localStorage) saat pertama kali render ----
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await storage.get(STORAGE_KEY);
+        if (!cancelled && result?.value) {
+          const restored = deserializeTraders(result.value);
+          setTraders(restored);
+        }
+      } catch (err) {
+        // Belum ada data tersimpan -> tetap pakai 3 data default
+      } finally {
+        if (!cancelled) setHydrated(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // ---- Simpan otomatis ke penyimpanan permanen setiap kali traders berubah ----
+  useEffect(() => {
+    if (!hydrated) return;
+    (async () => {
+      try {
+        await storage.set(STORAGE_KEY, serializeTraders(traders));
+      } catch (err) {
+        // Gagal simpan -> abaikan diam-diam, data tetap ada di state
+      }
+    })();
+  }, [traders, hydrated]);
+
+  const handleStatusChange = useCallback((id, status) => {
+    setStatusMap((prev) => (prev[id] === status ? prev : { ...prev, [id]: status }));
+  }, []);
+
+  const openAddModal = useCallback(() => {
+    setModalMode("add");
+    setEditingTrader(null);
+    setModalOpen(true);
+  }, []);
+
+  const openEditModal = useCallback((trader) => {
+    setModalMode("edit");
+    setEditingTrader(trader);
+    setModalOpen(true);
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setModalOpen(false);
+    setEditingTrader(null);
+  }, []);
+
+  const handleModalSubmit = useCallback(
+    (data) => {
+      if (modalMode === "edit" && editingTrader) {
+        setTraders((prev) =>
+          prev.map((t) => (t.id === editingTrader.id ? { ...t, ...data } : t))
+        );
+      } else {
+        setTraders((prev) => [
+          ...prev,
+          { id: `trd-${Date.now()}`, startDate: todayLabel(), ...data },
+        ]);
+      }
+    },
+    [modalMode, editingTrader]
+  );
+
+  const handleDelete = useCallback(
+    (id) => {
+      const target = traders.find((t) => t.id === id);
+      const namaTrader = target ? target.traderName : "trader ini";
+      const confirmed = window.confirm(`Yakin ingin menghapus data ${namaTrader}?`);
+      if (confirmed) {
+        setTraders((prev) => prev.filter((t) => t.id !== id));
+        setStatusMap((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+      }
+    },
+    [traders]
+  );
+
+  const summary = useMemo(() => {
+    const counts = { active: 0, warning: 0, expired: 0 };
+    traders.forEach((t) => {
+      const st = statusMap[t.id];
+      if (st) counts[st] += 1;
+    });
+    return { total: traders.length, ...counts };
+  }, [traders, statusMap]);
+
+  const visibleTraders = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const filtered = traders.filter((t) => {
+      const matchesSearch = !q || t.traderName.toLowerCase().includes(q);
+      const matchesFilter = filter === "all" || statusMap[t.id] === filter;
+      return matchesSearch && matchesFilter;
+    });
+
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortBy === "name") {
+        return a.traderName.localeCompare(b.traderName, "id-ID");
+      }
+      const diff = a.expiryDate.getTime() - b.expiryDate.getTime();
+      return sortBy === "furthest" ? -diff : diff;
+    });
+
+    return sorted;
+  }, [traders, search, filter, statusMap, sortBy]);
+
+  return (
+    <div className="min-h-screen w-full bg-neutral-950 p-6 md:p-10">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-rajdhani { font-family: 'Rajdhani', sans-serif; }
+        .font-jetbrains { font-family: 'JetBrains Mono', monospace; }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+          filter: invert(1) brightness(1.6);
+          cursor: pointer;
+        }
+
+        /* ---- Industrial Scrollbar: Orange / Dense Gray ---- */
+        * {
+          scrollbar-width: thin;
+          scrollbar-color: #FF6A00 #1a1a1a;
+        }
+        ::-webkit-scrollbar {
+          width: 10px;
+          height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+          background: #141414;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #FF6A00;
+          border-radius: 999px;
+          border: 2px solid #141414;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #FF7E1F;
+          box-shadow: 0 0 8px rgba(255,106,0,0.6);
+        }
+
+        /* ---- Add Trader button: thin roaming orange glow ---- */
+        @keyframes pulseGlow {
+          0%, 100% {
+            box-shadow: 0 0 10px rgba(255,106,0,0.35), 0 0 0px rgba(255,106,0,0);
+          }
+          50% {
+            box-shadow: 0 0 22px rgba(255,106,0,0.65), 0 0 6px rgba(255,106,0,0.4);
+          }
+        }
+        .btn-add-glow {
+          animation: pulseGlow 2.4s ease-in-out infinite;
+        }
+        .btn-add-glow:hover {
+          animation-play-state: paused;
+          box-shadow: 0 0 26px rgba(255,106,0,0.8);
+        }
+
+        /* ---- Empty state: blinking terminal text ---- */
+        @keyframes termBlink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.25; }
+        }
+        .term-blink {
+          animation: termBlink 1.4s steps(2, start) infinite;
+        }
+      `}</style>
+
+      <div className="relative max-w-6xl mx-auto">
+        {/* ---- Header Dasbor ---- */}
+        <div className="mb-8">
+          <p className="font-orbitron text-xs uppercase tracking-[0.4em] text-gray-500">
+            SUBSCRIPTION TRACKER — TAHAP 8
+          </p>
+          <h1 className="font-rajdhani text-3xl md:text-4xl font-bold uppercase tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-[#FF6A00] to-white mt-1">
+            Dasbor Multi-Trader
+          </h1>
+          <p className="font-jetbrains text-[11px] text-gray-400 mt-2">
+            Industrial Futuristic Theme Aktif: Orange Accent, Solid Dark Panel, & Robotic Typography.
+          </p>
+        </div>
+
+        {/* ---- Bilah Ringkasan Global ---- */}
+        <div className="flex flex-wrap gap-3 mb-6 rounded-2xl border border-white/10 bg-[#111111] p-4">
+          <SummaryStat label="TOTAL AKUN" value={summary.total} color="#FF6A00" />
+          <SummaryStat label="AKTIF" value={summary.active} color="#00FFA3" />
+          <SummaryStat label="WARNING" value={summary.warning} color="#FFC93C" />
+          <SummaryStat label="EXPIRED" value={summary.expired} color="#FF3366" />
+        </div>
+
+        {/* ---- Control Bar: Search + Sort + Filter + Add Trader ---- */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-8 rounded-2xl border border-white/10 bg-[#111111] p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 xl:flex xl:items-center">
+            <SearchBar value={search} onChange={setSearch} />
+            <SortDropdown value={sortBy} onChange={setSortBy} />
+            <div className="sm:col-span-2 xl:col-span-1">
+              <FilterButtons active={filter} onChange={setFilter} />
+            </div>
+          </div>
+          <button
+            onClick={openAddModal}
+            className="btn-add-glow shrink-0 w-full lg:w-auto rounded-xl border border-[#FF6A00] bg-[#FF6A00] px-5 py-2.5 font-orbitron text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-all duration-300 hover:bg-[#FF7E1F] hover:-translate-y-0.5"
+          >
+            + ADD TRADER
+          </button>
+        </div>
+
+        {/* ---- Grid Kartu Multi-Trader ---- */}
+        {visibleTraders.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {visibleTraders.map((t) => (
+              <TraderSubscriptionCard
+                key={t.id}
+                id={t.id}
+                traderName={t.traderName}
+                price={t.price}
+                startDate={t.startDate}
+                expiryDate={t.expiryDate}
+                onStatusChange={handleStatusChange}
+                onEdit={() => openEditModal(t)}
+                onDelete={() => handleDelete(t.id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="relative overflow-hidden rounded-2xl border border-[#FF3366]/20 bg-[#111111] py-16 px-6 text-center">
+            <div className="pointer-events-none absolute inset-0 opacity-[0.06]" style={{
+              backgroundImage: "linear-gradient(#FF3366 1px, transparent 1px), linear-gradient(90deg, #FF3366 1px, transparent 1px)",
+              backgroundSize: "32px 32px",
+            }} />
+
+            <div className="relative flex flex-col items-center gap-4">
+              <div
+                className="flex h-16 w-16 items-center justify-center rounded-full border"
+                style={{ borderColor: "#FF336666", boxShadow: "inset 0 0 18px rgba(255,51,102,0.25), 0 0 20px rgba(255,51,102,0.2)" }}
+              >
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FF3366" strokeWidth="1.6">
+                  <circle cx="12" cy="12" r="9" opacity="0.5" />
+                  <circle cx="12" cy="12" r="5" opacity="0.7" />
+                  <circle cx="12" cy="12" r="1.4" fill="#FF3366" stroke="none" />
+                  <line x1="12" y1="1.5" x2="12" y2="4.5" />
+                  <line x1="12" y1="19.5" x2="12" y2="22.5" />
+                  <line x1="1.5" y1="12" x2="4.5" y2="12" />
+                  <line x1="19.5" y1="12" x2="22.5" y2="12" />
+                </svg>
+              </div>
+
+              <p className="font-orbitron text-[11px] font-bold tracking-[0.3em] text-[#FF3366] term-blink">
+                :: NO_SIGNAL_DETECTED ::
+              </p>
+              <p className="font-jetbrains text-[11px] tracking-[0.05em] text-gray-500 max-w-sm">
+                <span className="text-[#FF3366]/80">&gt;</span> query returned 0 results — tidak ada trader yang cocok dengan pencarian / filter ini.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <TraderFormModal
+        open={modalOpen}
+        mode={modalMode}
+        initialData={editingTrader}
+        onClose={closeModal}
+        onSubmit={handleModalSubmit}
+      />
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+</script>
+
+</body>
+</html>
