@@ -1178,8 +1178,17 @@ function App({ userEmail, onLogout }) {
             <p className="font-orbitron text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.4em] text-gray-500 break-words">
               TRADERS FAMILY — MANAJEMEN LANGGANAN
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               <SyncStatusBadge status={syncStatus} />
+              {userEmail && (
+                <span
+                  className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 font-jetbrains text-[10px] text-gray-400 truncate max-w-[180px]"
+                  title={userEmail}
+                >
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: "#00FFA3", boxShadow: "0 0 6px #00FFA3" }} />
+                  {userEmail}
+                </span>
+              )}
               {onLogout && (
                 <button
                   type="button"
@@ -1198,6 +1207,11 @@ function App({ userEmail, onLogout }) {
           <p className="font-jetbrains text-[11px] text-gray-400 mt-2">
             Pantau status akses, masa aktif, dan tagihan setiap trader secara real-time.
           </p>
+          {userEmail && (
+            <p className="sm:hidden font-jetbrains text-[10px] text-gray-500 mt-1">
+              Login sebagai: <span className="text-gray-300">{userEmail}</span>
+            </p>
+          )}
         </div>
 
         {/* ---- Bilah Ringkasan Global ---- */}
