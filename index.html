@@ -396,10 +396,10 @@ function TraderSubscriptionCard({ id, traderName, lot, price, startDate, expiryD
           <div className="flex flex-col items-end gap-2 shrink-0">
             <StatusBadge status={timeLeft.status} />
             <div className="flex items-center gap-1.5">
-              <CardActionButton onClick={onEdit} tone="#FF6A00" label="Edit trader">
+              <CardActionButton onClick={onEdit} tone="#FF6A00" label="Edit investor">
                 <PencilIcon size={14} />
               </CardActionButton>
-              <CardActionButton onClick={onDelete} tone="#FF3366" label="Hapus trader">
+              <CardActionButton onClick={onDelete} tone="#FF3366" label="Hapus investor">
                 <TrashIcon size={14} />
               </CardActionButton>
             </div>
@@ -500,7 +500,7 @@ function SearchBar({ value, onChange }) {
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Cari nama trader..."
+        placeholder="Cari nama investor..."
         className="w-full rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-xl pl-10 pr-4 py-2.5 font-rajdhani text-sm text-white placeholder:text-gray-500 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_16px_rgba(255,106,0,0.25)]"
       />
     </div>
@@ -678,13 +678,13 @@ function TraderFormModal({ open, mode, initialData, onClose, onSubmit }) {
           <form onSubmit={handleSubmit} className="relative flex flex-col gap-4">
             <div>
               <label className="block font-orbitron text-[9px] tracking-[0.2em] text-gray-500 mb-1.5">
-                NAMA TRADER
+                NAMA INVESTOR
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Trader Alanis 04"
+                placeholder="Investor Alanis 04"
                 className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 font-rajdhani text-sm text-white placeholder:text-gray-600 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)]"
               />
             </div>
@@ -896,9 +896,9 @@ function buildInitialTraders() {
   };
 
   return [
-    { id: "trd-01", traderName: "Trader Alanis 01", lot: "LOT-01", price: "Rp 5.000.000", startDate: "01 Jul 2026", expiryDate: inFuture(4, 23, 59) },
-    { id: "trd-02", traderName: "Trader Alanis 02", lot: "LOT-02", price: "Rp 7.500.000", startDate: "10 Jul 2026", expiryDate: inFuture(1, 14, 0) },
-    { id: "trd-03", traderName: "Trader Alanis 03", lot: "LOT-03", price: "Rp 3.000.000", startDate: "15 Jun 2026", expiryDate: inFuture(-4, 0, 0) },
+    { id: "trd-01", traderName: "Investor Alanis 01", lot: "LOT-01", price: "Rp 5.000.000", startDate: "01 Jul 2026", expiryDate: inFuture(4, 23, 59) },
+    { id: "trd-02", traderName: "Investor Alanis 02", lot: "LOT-02", price: "Rp 7.500.000", startDate: "10 Jul 2026", expiryDate: inFuture(1, 14, 0) },
+    { id: "trd-03", traderName: "Investor Alanis 03", lot: "LOT-03", price: "Rp 3.000.000", startDate: "15 Jun 2026", expiryDate: inFuture(-4, 0, 0) },
   ];
 }
 
@@ -1065,7 +1065,7 @@ function App({ userEmail, onLogout }) {
   const handleDelete = useCallback(
     (id) => {
       const target = traders.find((t) => t.id === id);
-      const namaTrader = target ? target.traderName : "trader ini";
+      const namaTrader = target ? target.traderName : "investor ini";
       const confirmed = window.confirm(`Yakin ingin menghapus data ${namaTrader}?`);
       if (confirmed) {
         setTraders((prev) => prev.filter((t) => t.id !== id));
@@ -1174,10 +1174,7 @@ function App({ userEmail, onLogout }) {
       <div className="relative max-w-6xl mx-auto">
         {/* ---- Header Dasbor ---- */}
         <div className="mb-6 sm:mb-8 max-w-full">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="font-orbitron text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.4em] text-gray-500 break-words">
-              TRADERS FAMILY — MANAJEMEN LANGGANAN
-            </p>
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <div className="flex items-center gap-2 min-w-0">
               {userEmail && (
                 <span
@@ -1201,10 +1198,10 @@ function App({ userEmail, onLogout }) {
             </div>
           </div>
           <h1 className="font-rajdhani text-2xl sm:text-3xl md:text-4xl font-bold uppercase tracking-wide sm:tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-[#FF6A00] to-white mt-1 break-words">
-            Dasbor Trader
+            Dasbor Investor
           </h1>
           <p className="font-jetbrains text-[11px] text-gray-400 mt-2">
-            Pantau status akses, masa aktif, dan tagihan setiap trader secara real-time.
+            Pantau akses, masa aktif, dan tagihan investor.
           </p>
           {userEmail && (
             <p className="sm:hidden font-jetbrains text-[10px] text-gray-500 mt-1">
@@ -1276,11 +1273,11 @@ function App({ userEmail, onLogout }) {
             onClick={openAddModal}
             className="btn-add-glow shrink-0 w-full lg:w-auto rounded-xl border border-[#FF6A00] bg-[#FF6A00] px-4 sm:px-5 py-2.5 font-orbitron text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-all duration-300 hover:bg-[#FF7E1F] hover:-translate-y-0.5"
           >
-            + ADD TRADER
+            + ADD ANALIS
           </button>
         </div>
 
-        {/* ---- Grid Kartu Multi-Trader ---- */}
+        {/* ---- Grid Kartu Multi-Investor ---- */}
         {visibleTraders.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {visibleTraders.map((t) => (
@@ -1325,7 +1322,7 @@ function App({ userEmail, onLogout }) {
                 :: NO_SIGNAL_DETECTED ::
               </p>
               <p className="font-jetbrains text-[11px] tracking-[0.05em] text-gray-500 max-w-sm">
-                <span className="text-[#FF3366]/80">&gt;</span> query returned 0 results — tidak ada trader yang cocok dengan pencarian / filter ini.
+                <span className="text-[#FF3366]/80">&gt;</span> query returned 0 results — tidak ada investor yang cocok dengan pencarian / filter ini.
               </p>
             </div>
           </div>
