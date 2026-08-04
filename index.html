@@ -2,7 +2,10 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0a0a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Traders Family — Subscription Tracker</title>
 
 <!-- Favicon inline (SVG data URI) supaya ikon tab selalu terbaca tanpa request eksternal -->
@@ -27,8 +30,14 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 
 <style>
-  html, body { background:#0a0a0a; margin:0; padding:0; width:100%; overflow-x:hidden; }
+  html, body { background:#0a0a0a; margin:0; padding:0; width:100%; overflow-x:hidden; -webkit-text-size-adjust:100%; }
   *, *::before, *::after { box-sizing: border-box; }
+  /* Prevent iOS zoom on input focus */
+  input, select, textarea, button { font-size: 16px; }
+  /* Safe area for notched phones */
+  #root { min-height: 100dvh; padding-bottom: env(safe-area-inset-bottom, 0px); }
+  /* Touch-friendly: remove tap highlight */
+  button, a, [role="button"] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 </style>
 </head>
 <body>
@@ -253,24 +262,24 @@ function StatusBadge({ status = "active" }) {
   const s = STATUS_STYLES[status];
   return (
     <div
-      className="inline-flex items-center gap-2 rounded-full px-3 py-1.5"
+      className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5"
       style={{
         boxShadow: `0 0 16px ${s.accent}73, inset 0 0 0 1px ${s.accent}66`,
         backgroundColor: `${s.accent}1A`,
       }}
     >
-      <span className="relative flex h-2 w-2">
+      <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2">
         {status !== "expired" && (
           <span
             className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
             style={{ backgroundColor: s.accent }}
           ></span>
         )}
-        <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: s.accent }}></span>
+        <span className="relative inline-flex h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full" style={{ backgroundColor: s.accent }}></span>
       </span>
       <span
-        className="font-orbitron text-xs font-extrabold"
-        style={{ color: s.accent, textShadow: `0 0 8px ${s.accent}CC`, letterSpacing: "0.2em" }}
+        className="font-orbitron text-[10px] sm:text-xs font-extrabold"
+        style={{ color: s.accent, textShadow: `0 0 8px ${s.accent}CC`, letterSpacing: "0.15em" }}
       >
         {s.label}
       </span>
@@ -292,19 +301,19 @@ function CornerBrackets({ color = "#FF6A00" }) {
 
 function CountdownBlock({ value, label, accent }) {
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center min-w-0">
       <div
-        className="relative rounded-lg border bg-black/60 px-2.5 sm:px-3.5 py-1.5 sm:py-2 min-w-[46px] sm:min-w-[58px] text-center transition-colors duration-500"
+        className="relative rounded-lg border bg-black/60 px-2 xs:px-2.5 sm:px-3.5 py-1.5 sm:py-2 min-w-[40px] sm:min-w-[58px] text-center transition-colors duration-500"
         style={{ borderColor: `${accent}4D`, boxShadow: `inset 0 0 12px ${accent}26` }}
       >
         <span
-          className="font-jetbrains text-base sm:text-xl font-bold tracking-wider transition-colors duration-500"
+          className="font-jetbrains text-sm sm:text-xl font-bold tracking-wider transition-colors duration-500"
           style={{ color: accent, textShadow: `0 0 8px ${accent}CC` }}
         >
           {value}
         </span>
       </div>
-      <span className="mt-1.5 font-orbitron text-[8px] tracking-[0.2em] text-gray-500">
+      <span className="mt-1 sm:mt-1.5 font-orbitron text-[7px] sm:text-[8px] tracking-[0.15em] sm:tracking-[0.2em] text-gray-500">
         {label}
       </span>
     </div>
@@ -319,7 +328,7 @@ function CardActionButton({ onClick, tone, children, label }) {
       onClick={onClick}
       aria-label={label}
       title={label}
-      className="rounded-lg border p-1.5 transition-all duration-300"
+      className="rounded-lg border p-2 sm:p-1.5 min-w-[36px] min-h-[36px] sm:min-w-0 sm:min-h-0 flex items-center justify-center transition-all duration-300"
       style={{
         borderColor: "rgba(255,255,255,0.1)",
         backgroundColor: "rgba(255,255,255,0.03)",
@@ -381,17 +390,17 @@ function TraderSubscriptionCard({ id, traderName, lot, price, startDate, expiryD
         e.currentTarget.style.boxShadow = "0 0 0px rgba(255,106,0,0)";
       }}
     >
-      <div className="relative overflow-hidden rounded-2xl p-4 sm:p-6 h-full">
+      <div className="relative overflow-hidden rounded-2xl p-3.5 sm:p-6 h-full">
         <div className="pointer-events-none absolute -top-24 -right-24 h-56 w-56 rounded-full bg-[#FF6A00]/10 blur-3xl" />
 
         <CornerBrackets color="#FF6A00" />
 
-        <div className="relative flex items-start justify-between mb-5 gap-2">
-          <div className="min-w-0">
+        <div className="relative flex items-start justify-between mb-4 sm:mb-5 gap-2">
+          <div className="min-w-0 flex-1 pr-1">
             <p className="font-orbitron text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[#FF6A00] mb-1 drop-shadow-[0_0_6px_rgba(255,106,0,0.5)] truncate">
               LOT {lot || "-"}
             </p>
-            <h2 className="font-rajdhani text-xl sm:text-2xl font-bold text-white tracking-wide truncate">
+            <h2 className="font-rajdhani text-lg sm:text-2xl font-bold text-white tracking-wide leading-tight break-words">
               {traderName}
             </h2>
           </div>
@@ -409,33 +418,33 @@ function TraderSubscriptionCard({ id, traderName, lot, price, startDate, expiryD
           </div>
         </div>
 
-        <div className="relative mb-5 rounded-xl border border-white/10 bg-black/30 px-4 py-3">
-          <p className="font-orbitron text-[9px] uppercase tracking-[0.25em] text-gray-500 mb-1">HARGA SUBSCRIPTION</p>
-          <p className="font-jetbrains text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF6A00] to-white drop-shadow-[0_0_10px_rgba(255,106,0,0.25)] break-words">
+        <div className="relative mb-3.5 sm:mb-5 rounded-xl border border-white/10 bg-black/30 px-3 sm:px-4 py-2.5 sm:py-3">
+          <p className="font-orbitron text-[8px] sm:text-[9px] uppercase tracking-[0.2em] sm:tracking-[0.25em] text-gray-500 mb-1">HARGA SUBSCRIPTION</p>
+          <p className="font-jetbrains text-lg sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#FF6A00] to-white drop-shadow-[0_0_10px_rgba(255,106,0,0.25)] break-words">
             {price}
           </p>
         </div>
 
-        <div className="relative grid grid-cols-2 gap-2 sm:gap-3 mb-5">
-          <div className="min-w-0 rounded-xl border border-white/10 bg-black/30 px-2.5 sm:px-3 py-2.5">
-            <p className="font-orbitron text-[8px] uppercase tracking-[0.2em] text-gray-500 mb-1">START DATE</p>
-            <p className="font-rajdhani text-sm sm:text-base font-semibold text-white truncate">{startDate}</p>
+        <div className="relative grid grid-cols-2 gap-2 sm:gap-3 mb-3.5 sm:mb-5">
+          <div className="min-w-0 rounded-xl border border-white/10 bg-black/30 px-2.5 sm:px-3 py-2 sm:py-2.5">
+            <p className="font-orbitron text-[7px] sm:text-[8px] uppercase tracking-[0.15em] sm:tracking-[0.2em] text-gray-500 mb-0.5 sm:mb-1">START DATE</p>
+            <p className="font-rajdhani text-xs sm:text-base font-semibold text-white truncate">{startDate}</p>
           </div>
-          <div className="min-w-0 rounded-xl border border-white/10 bg-black/30 px-2.5 sm:px-3 py-2.5">
-            <p className="font-orbitron text-[8px] uppercase tracking-[0.2em] text-gray-500 mb-1">EXPIRY DATE</p>
-            <p className="font-rajdhani text-sm sm:text-base font-semibold text-white truncate">{expiryLabel}</p>
+          <div className="min-w-0 rounded-xl border border-white/10 bg-black/30 px-2.5 sm:px-3 py-2 sm:py-2.5">
+            <p className="font-orbitron text-[7px] sm:text-[8px] uppercase tracking-[0.15em] sm:tracking-[0.2em] text-gray-500 mb-0.5 sm:mb-1">EXPIRY DATE</p>
+            <p className="font-rajdhani text-xs sm:text-base font-semibold text-white truncate">{expiryLabel}</p>
           </div>
         </div>
 
-        <div className="relative rounded-xl border border-white/10 bg-black/40 px-2 sm:px-3 py-4">
-          <p className="font-orbitron text-[8px] uppercase tracking-[0.25em] text-gray-500 mb-3 text-center">
+        <div className="relative rounded-xl border border-white/10 bg-black/40 px-1.5 sm:px-3 py-3 sm:py-4">
+          <p className="font-orbitron text-[7px] sm:text-[8px] uppercase tracking-[0.2em] sm:tracking-[0.25em] text-gray-500 mb-2.5 sm:mb-3 text-center">
             {timeLeft.status === "expired" ? "AKSES BERAKHIR" : "SISA WAKTU AKSES"}
           </p>
-          <div className="flex items-center justify-center gap-1 sm:gap-1.5">
+          <div className="flex items-center justify-center gap-0.5 sm:gap-1.5">
             <CountdownBlock value={pad2(timeLeft.days)} label="HARI" accent={s.accent} />
-            <span className="font-jetbrains text-base sm:text-lg pb-4 transition-colors duration-500" style={{ color: `${s.accent}99` }}>:</span>
+            <span className="font-jetbrains text-sm sm:text-lg pb-3 sm:pb-4 transition-colors duration-500" style={{ color: `${s.accent}99` }}>:</span>
             <CountdownBlock value={pad2(timeLeft.hours)} label="JAM" accent={s.accent} />
-            <span className="font-jetbrains text-base sm:text-lg pb-4 transition-colors duration-500" style={{ color: `${s.accent}99` }}>:</span>
+            <span className="font-jetbrains text-sm sm:text-lg pb-3 sm:pb-4 transition-colors duration-500" style={{ color: `${s.accent}99` }}>:</span>
             <CountdownBlock value={pad2(timeLeft.minutes)} label="MENIT" accent={s.accent} />
           </div>
         </div>
@@ -476,11 +485,11 @@ function SyncStatusBadge({ status }) {
 
 function SummaryStat({ label, value, color }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-white/5 bg-white/[0.02] px-3 sm:px-4 py-2.5 min-w-0">
-      <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }} />
-      <span className="font-orbitron text-[9px] sm:text-[10px] tracking-[0.1em] sm:tracking-[0.15em] text-gray-500 truncate">{label}</span>
+    <div className="flex flex-wrap items-center gap-x-1.5 sm:gap-x-2 gap-y-1 rounded-xl border border-white/5 bg-white/[0.02] px-2.5 sm:px-4 py-2 sm:py-2.5 min-w-0">
+      <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 shrink-0 rounded-full" style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }} />
+      <span className="font-orbitron text-[8px] sm:text-[10px] tracking-[0.08em] sm:tracking-[0.15em] text-gray-500 truncate">{label}</span>
       <span
-        className="font-jetbrains text-base sm:text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r ml-auto"
+        className="font-jetbrains text-sm sm:text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r ml-auto"
         style={{ backgroundImage: `linear-gradient(90deg, #ffffff, ${color})`, filter: `drop-shadow(0 0 8px ${color}99)` }}
       >
         {value}
@@ -504,7 +513,7 @@ function SearchBar({ value, onChange }) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Cari nama investor..."
-        className="w-full rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-xl pl-10 pr-4 py-2.5 font-rajdhani text-sm text-white placeholder:text-gray-500 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_16px_rgba(255,106,0,0.25)]"
+        className="w-full rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-xl pl-10 pr-4 py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 font-rajdhani text-sm text-white placeholder:text-gray-500 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_16px_rgba(255,106,0,0.25)]"
       />
     </div>
   );
@@ -523,7 +532,7 @@ function SortDropdown({ value, onChange }) {
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-xl pl-10 pr-9 py-2.5 font-rajdhani text-sm text-white outline-none transition-all duration-300 cursor-pointer focus:border-[#FF6A00]/70 focus:shadow-[0_0_16px_rgba(255,106,0,0.25)]"
+        className="w-full appearance-none rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-xl pl-10 pr-9 py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 font-rajdhani text-sm text-white outline-none transition-all duration-300 cursor-pointer focus:border-[#FF6A00]/70 focus:shadow-[0_0_16px_rgba(255,106,0,0.25)]"
       >
         {SORT_OPTIONS.map((opt) => (
           <option key={opt.key} value={opt.key} className="bg-black text-white">
@@ -543,14 +552,14 @@ function SortDropdown({ value, onChange }) {
 // ---- Grup tombol filter status ----
 function FilterButtons({ active, onChange }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-0.5 px-0.5 pb-0.5" style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" }}>
       {FILTERS.map((f) => {
         const isActive = active === f.key;
         return (
           <button
             key={f.key}
             onClick={() => onChange(f.key)}
-            className="font-orbitron text-[10px] font-bold tracking-[0.15em] px-3.5 py-2.5 rounded-xl border transition-all duration-300"
+            className="font-orbitron text-[10px] font-bold tracking-[0.12em] sm:tracking-[0.15em] px-3 sm:px-3.5 py-2.5 rounded-xl border transition-all duration-300 shrink-0 min-h-[40px]"
             style={
               isActive
                 ? {
@@ -658,27 +667,33 @@ function TraderFormModal({ open, mode, initialData, onClose, onSubmit }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4 overflow-y-auto"
+      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       onMouseDown={handleBackdropMouseDown}
       onClick={handleBackdropClick}
     >
       <div
-        className="relative w-full max-w-md my-auto rounded-2xl border border-white/10 bg-[#111111]"
+        className="relative w-full max-w-md sm:my-auto rounded-t-2xl sm:rounded-2xl border border-white/10 bg-[#111111] max-h-[92dvh] sm:max-h-[90vh] overflow-y-auto"
+        style={{ WebkitOverflowScrolling: "touch" }}
       >
-        <div className="relative overflow-hidden rounded-2xl p-4 sm:p-6">
+        {/* Drag handle indicator (mobile bottom sheet style) */}
+        <div className="sm:hidden flex justify-center pt-3 pb-1">
+          <span className="block h-1 w-10 rounded-full bg-white/20" />
+        </div>
+        <div className="relative overflow-hidden rounded-2xl p-4 sm:p-6 pt-2 sm:pt-6">
           <div className="pointer-events-none absolute -top-20 -right-20 h-48 w-48 rounded-full bg-[#FF6A00]/10 blur-3xl" />
           <CornerBrackets color="#FF6A00" />
 
-          <div className="relative mb-6 min-w-0">
+          <div className="relative mb-4 sm:mb-6 min-w-0">
             <p className="font-orbitron text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[#FF6A00] mb-1 drop-shadow-[0_0_6px_rgba(255,106,0,0.5)] break-words">
               TRADERS FAMILY // {isEdit ? "EDIT LOT" : "NEW LOT"}
             </p>
-            <h3 className="font-rajdhani text-xl sm:text-2xl font-bold text-white break-words">
+            <h3 className="font-rajdhani text-lg sm:text-2xl font-bold text-white break-words">
               {isEdit ? "Edit Subscription" : "Add New Subscription"}
             </h3>
           </div>
 
-          <form onSubmit={handleSubmit} className="relative flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="relative flex flex-col gap-3.5 sm:gap-4">
             <div>
               <label className="block font-orbitron text-[9px] tracking-[0.2em] text-gray-500 mb-1.5">
                 NAMA INVESTOR
@@ -688,7 +703,7 @@ function TraderFormModal({ open, mode, initialData, onClose, onSubmit }) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Investor Alanis 04"
-                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 font-rajdhani text-sm text-white placeholder:text-gray-600 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)]"
+                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 font-rajdhani text-sm text-white placeholder:text-gray-600 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)]"
               />
             </div>
 
@@ -701,7 +716,7 @@ function TraderFormModal({ open, mode, initialData, onClose, onSubmit }) {
                 value={lot}
                 onChange={(e) => setLot(e.target.value)}
                 placeholder="LOT-01"
-                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 font-jetbrains text-sm text-white placeholder:text-gray-600 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)]"
+                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 font-jetbrains text-sm text-white placeholder:text-gray-600 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)]"
               />
             </div>
 
@@ -715,7 +730,7 @@ function TraderFormModal({ open, mode, initialData, onClose, onSubmit }) {
                 value={priceRaw ? Number(priceRaw).toLocaleString("id-ID") : ""}
                 onChange={(e) => setPriceRaw(e.target.value.replace(/[^0-9]/g, ""))}
                 placeholder="5.000.000"
-                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 font-jetbrains text-sm text-white placeholder:text-gray-600 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)]"
+                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 font-jetbrains text-sm text-white placeholder:text-gray-600 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)]"
               />
             </div>
 
@@ -727,31 +742,31 @@ function TraderFormModal({ open, mode, initialData, onClose, onSubmit }) {
                 type="date"
                 value={startDateInput}
                 onChange={(e) => setStartDateInput(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 font-jetbrains text-sm text-white outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)] [color-scheme:dark]"
+                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 font-jetbrains text-sm text-white outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)] [color-scheme:dark]"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
               <div>
-                <label className="block font-orbitron text-[9px] tracking-[0.2em] text-gray-500 mb-1.5">
+                <label className="block font-orbitron text-[8px] sm:text-[9px] tracking-[0.15em] sm:tracking-[0.2em] text-gray-500 mb-1.5">
                   TANGGAL KEDALUWARSA
                 </label>
                 <input
                   type="date"
                   value={expiryDateInput}
                   onChange={(e) => setExpiryDateInput(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 font-jetbrains text-sm text-white outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)] [color-scheme:dark]"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-2.5 sm:px-3.5 py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 font-jetbrains text-sm text-white outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)] [color-scheme:dark]"
                 />
               </div>
               <div>
-                <label className="block font-orbitron text-[9px] tracking-[0.2em] text-gray-500 mb-1.5">
+                <label className="block font-orbitron text-[8px] sm:text-[9px] tracking-[0.15em] sm:tracking-[0.2em] text-gray-500 mb-1.5">
                   JAM BERAKHIR
                 </label>
                 <input
                   type="time"
                   value={expiryTimeInput}
                   onChange={(e) => setExpiryTimeInput(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 font-jetbrains text-sm text-white outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)] [color-scheme:dark]"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-2.5 sm:px-3.5 py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 font-jetbrains text-sm text-white outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_14px_rgba(255,106,0,0.25)] [color-scheme:dark]"
                 />
               </div>
             </div>
@@ -760,17 +775,17 @@ function TraderFormModal({ open, mode, initialData, onClose, onSubmit }) {
               <p className="font-rajdhani text-sm text-[#FF3366]">{error}</p>
             )}
 
-            <div className="flex gap-3 mt-2">
+            <div className="flex gap-2.5 sm:gap-3 mt-1 sm:mt-2 pb-1">
               <button
                 type="button"
                 onClick={resetAndClose}
-                className="flex-1 rounded-xl border border-white/10 bg-white/[0.02] py-2.5 font-orbitron text-[11px] font-bold tracking-[0.15em] text-gray-400 transition-all duration-300 hover:border-white/20 hover:text-white"
+                className="flex-1 rounded-xl border border-white/10 bg-white/[0.02] py-3 sm:py-2.5 min-h-[48px] sm:min-h-0 font-orbitron text-[11px] font-bold tracking-[0.15em] text-gray-400 transition-all duration-300 hover:border-white/20 hover:text-white"
               >
                 BATAL
               </button>
               <button
                 type="submit"
-                className="flex-1 rounded-xl border border-[#FF6A00] bg-[#FF6A00] py-2.5 font-orbitron text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-all duration-300 hover:bg-[#FF7E1F] hover:shadow-[0_0_20px_rgba(255,106,0,0.45)]"
+                className="flex-1 rounded-xl border border-[#FF6A00] bg-[#FF6A00] py-3 sm:py-2.5 min-h-[48px] sm:min-h-0 font-orbitron text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-all duration-300 hover:bg-[#FF7E1F] hover:shadow-[0_0_20px_rgba(255,106,0,0.45)]"
               >
                 {isEdit ? "PERBARUI" : "SIMPAN"}
               </button>
@@ -815,18 +830,21 @@ function LoginScreen({ auth }) {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-neutral-950 p-4">
+    <div className="min-h-screen w-full flex items-center justify-center bg-neutral-950 p-3 sm:p-4" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom, 0px))" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
         .font-orbitron { font-family: 'Orbitron', sans-serif; }
         .font-rajdhani { font-family: 'Rajdhani', sans-serif; }
         .font-jetbrains { font-family: 'JetBrains Mono', monospace; }
+        @media (max-width: 640px) {
+          input, select, textarea { font-size: 16px !important; }
+        }
       `}</style>
-      <div className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-[#111111] p-6 sm:p-8 overflow-hidden">
+      <div className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-[#111111] p-5 sm:p-8 overflow-hidden">
         <div className="pointer-events-none absolute -top-20 -right-20 h-48 w-48 rounded-full bg-[#FF6A00]/10 blur-3xl" />
         <div className="relative">
           <p className="font-orbitron text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-1">TRADERS FAMILY</p>
-          <h1 className="font-rajdhani text-2xl font-bold uppercase tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-[#FF6A00] to-white mb-6">
+          <h1 className="font-rajdhani text-xl sm:text-2xl font-bold uppercase tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-[#FF6A00] to-white mb-5 sm:mb-6">
             Login
           </h1>
 
@@ -839,7 +857,7 @@ function LoginScreen({ auth }) {
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="username"
                 placeholder="nama@email.com"
-                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 font-rajdhani text-sm text-white placeholder:text-gray-500 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_16px_rgba(255,106,0,0.25)]"
+                className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 font-rajdhani text-sm text-white placeholder:text-gray-500 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_16px_rgba(255,106,0,0.25)]"
               />
             </div>
             <div>
@@ -851,13 +869,13 @@ function LoginScreen({ auth }) {
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
                   placeholder="••••••••"
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 pr-11 font-rajdhani text-sm text-white placeholder:text-gray-500 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_16px_rgba(255,106,0,0.25)]"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-3 sm:py-2.5 pr-11 min-h-[44px] sm:min-h-0 font-rajdhani text-sm text-white placeholder:text-gray-500 outline-none transition-all duration-300 focus:border-[#FF6A00]/70 focus:shadow-[0_0_16px_rgba(255,106,0,0.25)]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#FF6A00] transition-colors duration-300"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center text-gray-500 hover:text-[#FF6A00] transition-colors duration-300"
                 >
                   {showPassword ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
                 </button>
@@ -871,7 +889,7 @@ function LoginScreen({ auth }) {
             <button
               type="submit"
               disabled={loading}
-              className="mt-1 w-full rounded-xl border border-[#FF6A00] bg-[#FF6A00] py-2.5 font-orbitron text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-all duration-300 hover:bg-[#FF7E1F] disabled:opacity-50"
+              className="mt-1 w-full rounded-xl border border-[#FF6A00] bg-[#FF6A00] py-3 sm:py-2.5 min-h-[48px] sm:min-h-0 font-orbitron text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-all duration-300 hover:bg-[#FF7E1F] disabled:opacity-50"
             >
               {loading ? "MEMPROSES..." : "MASUK"}
             </button>
@@ -1113,14 +1131,15 @@ function App({ userEmail, onLogout }) {
   }, [traders, search, filter, statusMap, sortBy]);
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-neutral-950 p-4 sm:p-6 md:p-10">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-neutral-950 px-3 py-4 sm:p-6 md:p-10" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom, 0px))" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
         .font-orbitron { font-family: 'Orbitron', sans-serif; }
         .font-rajdhani { font-family: 'Rajdhani', sans-serif; }
         .font-jetbrains { font-family: 'JetBrains Mono', monospace; }
         input[type="date"]::-webkit-calendar-picker-indicator,
-        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator {
           filter: invert(1) brightness(1.6);
           cursor: pointer;
         }
@@ -1146,6 +1165,7 @@ function App({ userEmail, onLogout }) {
           background: #FF7E1F;
           box-shadow: 0 0 8px rgba(255,106,0,0.6);
         }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
 
         /* ---- Add Trader button: thin roaming orange glow ---- */
         @keyframes pulseGlow {
@@ -1172,13 +1192,25 @@ function App({ userEmail, onLogout }) {
         .term-blink {
           animation: termBlink 1.4s steps(2, start) infinite;
         }
+
+        /* ---- Mobile input: prevent iOS zoom ---- */
+        @media (max-width: 640px) {
+          input, select, textarea {
+            font-size: 16px !important;
+          }
+        }
       `}</style>
 
       <div className="relative max-w-6xl mx-auto">
         {/* ---- Header Dasbor ---- */}
-        <div className="mb-6 sm:mb-8 max-w-full">
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <div className="flex items-center gap-2 min-w-0">
+        <div className="mb-5 sm:mb-8 max-w-full">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <h1 className="font-rajdhani text-xl sm:text-3xl md:text-4xl font-bold uppercase tracking-wide sm:tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-[#FF6A00] to-white break-words leading-tight">
+                Dasbor Investor
+              </h1>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
               {userEmail && (
                 <span
                   className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 font-jetbrains text-[10px] text-gray-400 truncate max-w-[180px]"
@@ -1193,28 +1225,25 @@ function App({ userEmail, onLogout }) {
                   type="button"
                   onClick={onLogout}
                   title={userEmail ? `Logout (${userEmail})` : "Logout"}
-                  className="font-orbitron text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.1em] rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-gray-500 transition-all duration-300 hover:border-[#FF3366]/60 hover:text-[#FF3366]"
+                  className="font-orbitron text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.1em] rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1.5 min-h-[32px] text-gray-500 transition-all duration-300 hover:border-[#FF3366]/60 hover:text-[#FF3366]"
                 >
                   LOGOUT
                 </button>
               )}
             </div>
           </div>
-          <h1 className="font-rajdhani text-2xl sm:text-3xl md:text-4xl font-bold uppercase tracking-wide sm:tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-[#FF6A00] to-white mt-1 break-words">
-            Dasbor Investor
-          </h1>
-          <p className="font-jetbrains text-[11px] text-gray-400 mt-2">
+          <p className="font-jetbrains text-[10px] sm:text-[11px] text-gray-400 mt-1.5 sm:mt-2">
             Pantau akses, masa aktif, dan tagihan investor.
           </p>
           {userEmail && (
-            <p className="sm:hidden font-jetbrains text-[10px] text-gray-500 mt-1">
+            <p className="sm:hidden font-jetbrains text-[10px] text-gray-500 mt-1 truncate">
               Login sebagai: <span className="text-gray-300">{userEmail}</span>
             </p>
           )}
         </div>
 
         {/* ---- Bilah Ringkasan Global ---- */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3 rounded-2xl border border-white/10 bg-[#111111] p-3 sm:p-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-3 rounded-2xl border border-white/10 bg-[#111111] p-2.5 sm:p-4">
           <SummaryStat label="TOTAL AKUN" value={summary.total} color="#FF6A00" />
           <SummaryStat label="AKTIF" value={summary.active} color="#00FFA3" />
           <SummaryStat label="WARNING" value={summary.warning} color="#FFC93C" />
@@ -1222,16 +1251,16 @@ function App({ userEmail, onLogout }) {
         </div>
 
         {/* ---- Bilah Total Subs (bisa disembunyikan lewat ikon mata) ---- */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6 rounded-2xl border border-[#FF6A00]/20 bg-[#111111] px-3 sm:px-4 py-3">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 mb-5 sm:mb-6 rounded-2xl border border-[#FF6A00]/20 bg-[#111111] px-3 sm:px-4 py-2.5 sm:py-3">
           <div className="flex items-center gap-2 min-w-0">
             <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: "#FF6A00", boxShadow: "0 0 8px #FF6A00" }} />
             <span className="font-orbitron text-[9px] sm:text-[10px] tracking-[0.15em] sm:tracking-[0.2em] text-gray-500 truncate">
               TOTAL SUBS
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <span
-              className="font-jetbrains text-base sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-[#FF6A00] select-none"
+              className="font-jetbrains text-sm sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-[#FF6A00] select-none"
               style={{ filter: "drop-shadow(0 0 8px rgba(255,106,0,0.35))", letterSpacing: showTotal ? "normal" : "0.15em" }}
             >
               {showTotal ? formatRupiah(summary.totalValue) : "••••••••"}
@@ -1241,7 +1270,7 @@ function App({ userEmail, onLogout }) {
               onClick={() => setShowTotal((v) => !v)}
               aria-label={showTotal ? "Sembunyikan total subs" : "Tampilkan total subs"}
               title={showTotal ? "Sembunyikan total subs" : "Tampilkan total subs"}
-              className="shrink-0 rounded-lg border p-1.5 transition-all duration-300"
+              className="shrink-0 rounded-lg border p-2 sm:p-1.5 min-w-[36px] min-h-[36px] sm:min-w-0 sm:min-h-0 flex items-center justify-center transition-all duration-300"
               style={{
                 borderColor: "rgba(255,255,255,0.1)",
                 backgroundColor: "rgba(255,255,255,0.03)",
@@ -1264,17 +1293,17 @@ function App({ userEmail, onLogout }) {
         </div>
 
         {/* ---- Control Bar: Search + Sort + Filter + Add Trader ---- */}
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-8 rounded-2xl border border-white/10 bg-[#111111] p-3 sm:p-4">
-          <div className="flex flex-wrap items-center gap-3 flex-1 min-w-0">
+        <div className="flex flex-col gap-2.5 sm:gap-3 lg:flex-row lg:items-center lg:justify-between mb-5 sm:mb-8 rounded-2xl border border-white/10 bg-[#111111] p-2.5 sm:p-4">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
             <SearchBar value={search} onChange={setSearch} />
             <SortDropdown value={sortBy} onChange={setSortBy} />
-            <div className="w-full sm:w-auto min-w-0">
+            <div className="w-full min-w-0">
               <FilterButtons active={filter} onChange={setFilter} />
             </div>
           </div>
           <button
             onClick={openAddModal}
-            className="btn-add-glow shrink-0 w-full lg:w-auto rounded-xl border border-[#FF6A00] bg-[#FF6A00] px-4 sm:px-5 py-2.5 font-orbitron text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-all duration-300 hover:bg-[#FF7E1F] hover:-translate-y-0.5"
+            className="btn-add-glow shrink-0 w-full lg:w-auto rounded-xl border border-[#FF6A00] bg-[#FF6A00] px-4 sm:px-5 py-3 sm:py-2.5 min-h-[44px] font-orbitron text-[11px] font-bold uppercase tracking-[0.15em] text-black transition-all duration-300 hover:bg-[#FF7E1F] hover:-translate-y-0.5"
           >
             + ADD ANALIS
           </button>
@@ -1282,7 +1311,7 @@ function App({ userEmail, onLogout }) {
 
         {/* ---- Grid Kartu Multi-Investor ---- */}
         {visibleTraders.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {visibleTraders.map((t) => (
               <TraderSubscriptionCard
                 key={t.id}
@@ -1299,7 +1328,7 @@ function App({ userEmail, onLogout }) {
             ))}
           </div>
         ) : (
-          <div className="relative overflow-hidden rounded-2xl border border-[#FF3366]/20 bg-[#111111] py-16 px-6 text-center">
+          <div className="relative overflow-hidden rounded-2xl border border-[#FF3366]/20 bg-[#111111] py-12 sm:py-16 px-4 sm:px-6 text-center">
             <div className="pointer-events-none absolute inset-0 opacity-[0.06]" style={{
               backgroundImage: "linear-gradient(#FF3366 1px, transparent 1px), linear-gradient(90deg, #FF3366 1px, transparent 1px)",
               backgroundSize: "32px 32px",
@@ -1307,7 +1336,7 @@ function App({ userEmail, onLogout }) {
 
             <div className="relative flex flex-col items-center gap-4">
               <div
-                className="flex h-16 w-16 items-center justify-center rounded-full border"
+                className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full border"
                 style={{ borderColor: "#FF336666", boxShadow: "inset 0 0 18px rgba(255,51,102,0.25), 0 0 20px rgba(255,51,102,0.2)" }}
               >
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FF3366" strokeWidth="1.6">
@@ -1321,10 +1350,10 @@ function App({ userEmail, onLogout }) {
                 </svg>
               </div>
 
-              <p className="font-orbitron text-[11px] font-bold tracking-[0.3em] text-[#FF3366] term-blink">
+              <p className="font-orbitron text-[10px] sm:text-[11px] font-bold tracking-[0.2em] sm:tracking-[0.3em] text-[#FF3366] term-blink">
                 :: NO_SIGNAL_DETECTED ::
               </p>
-              <p className="font-jetbrains text-[11px] tracking-[0.05em] text-gray-500 max-w-sm">
+              <p className="font-jetbrains text-[10px] sm:text-[11px] tracking-[0.05em] text-gray-500 max-w-sm px-2">
                 <span className="text-[#FF3366]/80">&gt;</span> query returned 0 results — tidak ada investor yang cocok dengan pencarian / filter ini.
               </p>
             </div>
